@@ -47,12 +47,15 @@ export default function NotificationsDropdown({ currentUserId }: { currentUserId
     if (!currentUserId) return
     async function countUnread() {
       const today = new Date().toISOString().split('T')[0]
-      const [{ data: od }, { data: pd }] = await Promise.all([
-        supabase.from('tasks').select('id').lt('due_date', today).neq('status', 'done'),
-        supabase.from('tasks').select('id').eq('inform_to', currentUserId).eq('inform_status', 'pending'),
-      ])
-      const total = (od?.length || 0) + (pd?.length || 0)
-      setUnreadCount(total)
+      const { data: od } = await supabase.from('tasks').select('id').lt('due_date', today).neq('status', 'done')
+      // inform_to column may not exist yet — catch gracefully
+      let pdCount = 0
+      try {
+        const { data: pd } = await supabase.from('tasks').select('id')
+          .eq('inform_to', currentUserId).eq('inform_status', 'pending')
+        pdCount = pd?.length || 0
+      } catch {}
+      setUnreadCount((od?.length || 0) + pdCount)
     }
     countUnread()
   }, [currentUserId])
@@ -69,17 +72,23 @@ export default function NotificationsDropdown({ currentUserId }: { currentUserId
     setLoading(true)
     const today = new Date().toISOString().split('T')[0]
 
-    const [{ data: od }, { data: pd }, { data: ac }] = await Promise.all([
+    const [{ data: od }, { data: ac }] = await Promise.all([
       supabase.from('tasks').select('id, title, due_date, priority')
         .lt('due_date', today).neq('status', 'done').order('due_date').limit(10),
-      supabase.from('tasks').select('id, title, description, inform_to')
-        .eq('inform_to', currentUserId).eq('inform_status', 'pending'),
       supabase.from('activity').select('id, action, created_at, task:tasks(title)')
         .order('created_at', { ascending: false }).limit(8),
     ])
 
+    // inform_to column may not exist yet — catch gracefully
+    let pdData: PendingTask[] = []
+    try {
+      const { data: pd } = await supabase.from('tasks').select('id, title, description, inform_to')
+        .eq('inform_to', currentUserId).eq('inform_status', 'pending')
+      pdData = (pd || []) as PendingTask[]
+    } catch {}
+
     setOverdue(od || [])
-    setPending((pd || []) as PendingTask[])
+    setPending(pdData)
     setActivity((ac || []) as unknown as ActivityItem[])
     setLoading(false)
   }

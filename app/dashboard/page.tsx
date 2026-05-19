@@ -11,7 +11,7 @@ export default async function DashboardPage() {
 
   const { data: tasks } = await supabase
     .from('tasks')
-    .select(`*, assignee:profiles!tasks_assigned_to_fkey(*), assigner:profiles!tasks_assigned_by_fkey(*), project:projects(*), informed_user:profiles!tasks_inform_to_fkey(*)`)
+    .select(`*, assignee:profiles!tasks_assigned_to_fkey(*), assigner:profiles!tasks_assigned_by_fkey(*), project:projects(*)`)
     .order('created_at', { ascending: false })
 
   const { data: activity } = await supabase

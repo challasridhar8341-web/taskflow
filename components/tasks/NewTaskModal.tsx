@@ -43,21 +43,30 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
 
     // If inform_to is set — task needs approval before assignment
     const isInform = !!form.inform_to
-    const payload = {
+    const basePayload = {
       title: form.title,
       description: form.description,
       priority: form.priority,
       status: form.status,
       due_date: form.due_date || null,
       project_id: form.project_id || null,
-      team: form.team || null,
       assigned_by: currentUserId,
       assigned_to: isInform ? currentUserId : (form.assigned_to || currentUserId),
-      inform_to: form.inform_to || null,
-      inform_status: isInform ? 'pending' : 'none',
     }
 
-    const { data: task, error } = await supabase.from('tasks').insert(payload).select().single()
+    // Try with new columns first; fall back to base if migration not yet run
+    let { data: task, error } = await supabase.from('tasks').insert({
+      ...basePayload,
+      team: form.team || null,
+      inform_to: form.inform_to || null,
+      inform_status: isInform ? 'pending' : 'none',
+    }).select().single()
+
+    if (error?.message?.includes('column')) {
+      const res = await supabase.from('tasks').insert(basePayload).select().single()
+      task = res.data
+      error = res.error
+    }
 
     if (!error && task) {
       await supabase.from('activity').insert({
