@@ -18,6 +18,13 @@ build/
 # Vercel
 .vercel
 
+# Claude Code settings
+.claude/
+
+# Env file variants
+.env.local.txt
+.env.local.example
+
 # Debug logs
 npm-debug.log*
 yarn-debug.log*

@@ -60,7 +60,7 @@ export default function NotificationsDropdown() {
     ])
 
     setOverdue(od || [])
-    setActivity((ac || []) as ActivityItem[])
+    setActivity((ac || []) as unknown as ActivityItem[])
     setLoading(false)
   }
 
