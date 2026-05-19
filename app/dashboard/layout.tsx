@@ -14,6 +14,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq('id', user.id)
     .single()
 
+  // New users must pick a team before accessing the dashboard
+  if (!profile?.department) redirect('/onboarding')
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar profile={profile} />

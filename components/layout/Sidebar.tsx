@@ -4,12 +4,11 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { avatarColor, initials } from '@/lib/utils'
 import type { Profile } from '@/types'
-import { LayoutDashboard, CheckSquare, ListTodo, BarChart2, LogOut, Settings, CalendarDays } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, BarChart2, LogOut, Settings, CalendarDays } from 'lucide-react'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/tasks', label: 'All Tasks', icon: ListTodo },
-  { href: '/dashboard/my-tasks', label: 'My Tasks', icon: CheckSquare },
+  { href: '/dashboard/my-tasks', label: 'Tasks', icon: CheckSquare },
   { href: '/dashboard/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart2 },
 ]
@@ -66,7 +65,7 @@ export default function Sidebar({ profile }: { profile: Profile | null }) {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-xs font-medium truncate">{profile.full_name}</div>
-              <div className="text-[10px] text-gray-500 truncate">{profile.email}</div>
+              <div className="text-[10px] text-gray-500 truncate">{profile.department ?? profile.email}</div>
             </div>
           </div>
         )}

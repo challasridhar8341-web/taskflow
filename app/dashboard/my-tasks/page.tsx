@@ -20,7 +20,7 @@ export default async function MyTasksPage() {
     <div className="space-y-5">
       <div className="flex items-end justify-between">
         <div>
-          <h2 className="font-display font-bold text-xl">My Tasks</h2>
+          <h2 className="font-display font-bold text-xl">Tasks</h2>
           <p className="text-sm text-gray-500 mt-1">{allTasks.length} tasks assigned to you</p>
         </div>
         <div className="flex gap-4 text-sm">

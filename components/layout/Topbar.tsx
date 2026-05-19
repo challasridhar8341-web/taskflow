@@ -8,8 +8,7 @@ import NotificationsDropdown from '@/components/layout/NotificationsDropdown'
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
-  '/dashboard/tasks': 'All Tasks',
-  '/dashboard/my-tasks': 'My Tasks',
+  '/dashboard/my-tasks': 'Tasks',
   '/dashboard/calendar': 'Calendar',
   '/dashboard/reports': 'Reports',
   '/dashboard/settings': 'Settings',
