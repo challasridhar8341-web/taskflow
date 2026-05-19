@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, isOverdue, priorityColor, priorityLabel, statusColor, statusLabel, avatarColor, initials, cn } from '@/lib/utils'
 import type { Task } from '@/types'
@@ -19,6 +19,8 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const q = searchParams.get('q')?.toLowerCase() || ''
   const supabase = createClient()
 
   const filtered = tasks.filter(t => {
@@ -28,6 +30,7 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
     if (filter === 'Done'       && t.status !== 'done') return false
     if (dateFrom && (!t.due_date || t.due_date < dateFrom)) return false
     if (dateTo   && (!t.due_date || t.due_date > dateTo))   return false
+    if (q && !t.title.toLowerCase().includes(q) && !t.description?.toLowerCase().includes(q)) return false
     return true
   })
 

@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { X } from 'lucide-react'
 import type { Task, Profile, Project, Priority, TaskStatus } from '@/types'
 
+const TEAMS = ['Tech', 'Design', 'Marketing', 'Content', 'HR', 'Other']
+
 export default function EditTaskModal({ task, onClose, currentUserId }: {
   task: Task
   onClose: () => void
@@ -24,6 +26,7 @@ export default function EditTaskModal({ task, onClose, currentUserId }: {
     status: task.status as TaskStatus,
     due_date: task.due_date || '',
     project_id: task.project_id || '',
+    team: task.team || '',
   })
 
   useEffect(() => {
@@ -81,9 +84,10 @@ export default function EditTaskModal({ task, onClose, currentUserId }: {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Assign To</label>
-              <select className="input" value={form.assigned_to} onChange={e => setForm(f => ({ ...f, assigned_to: e.target.value }))}>
-                {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+              <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Team</label>
+              <select className="input" value={form.team} onChange={e => setForm(f => ({ ...f, team: e.target.value }))}>
+                <option value="">No team</option>
+                {TEAMS.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>

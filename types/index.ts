@@ -28,12 +28,16 @@ export interface Task {
   project_id?: string
   assigned_to: string
   assigned_by: string
+  inform_to?: string
+  inform_status?: 'none' | 'pending' | 'approved' | 'rejected'
+  team?: string
   created_at: string
   updated_at: string
   // joined
   assignee?: Profile
   assigner?: Profile
   project?: Project
+  informed_user?: Profile
 }
 
 export interface Activity {
