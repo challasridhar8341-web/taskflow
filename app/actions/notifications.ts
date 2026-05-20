@@ -23,6 +23,29 @@ export interface TaskDetail {
   assigner?: { full_name: string } | null
 }
 
+/** Tasks this user has already approved (inform_to = me, inform_status = approved) */
+export async function fetchApprovedByMe(): Promise<Record<string, unknown>[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from('tasks')
+    .select(`
+      *,
+      assignee:profiles!tasks_assigned_to_fkey(*),
+      assigner:profiles!tasks_assigned_by_fkey(*),
+      informed_user:profiles!tasks_inform_to_fkey(*),
+      project:projects(*)
+    `)
+    .eq('inform_to', user.id)
+    .eq('inform_status', 'approved')
+    .order('updated_at', { ascending: false })
+
+  return (data ?? []) as Record<string, unknown>[]
+}
+
 /** Fetch full task detail (bypasses RLS for approver) */
 export async function fetchTaskDetail(taskId: string): Promise<TaskDetail | null> {
   const supabase = await createClient()

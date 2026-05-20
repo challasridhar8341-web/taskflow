@@ -8,7 +8,7 @@ import { Calendar, X } from 'lucide-react'
 import TaskOptionsMenu from '@/components/tasks/TaskOptionsMenu'
 import EditTaskModal from '@/components/tasks/EditTaskModal'
 
-const FILTERS = ['All', 'My Tasks', 'In Progress', 'Overdue', 'Done']
+const FILTERS = ['All', 'My Tasks', 'In Progress', 'Overdue', 'Done', 'Approved']
 
 const todayStr = () => new Date().toISOString().split('T')[0]
 const weekEndStr = () => {
@@ -25,11 +25,16 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
   const q = searchParams.get('q')?.toLowerCase() || ''
   const supabase = createClient()
 
+  const approvedCount = tasks.filter(
+    t => t.inform_to === currentUserId && t.inform_status === 'approved'
+  ).length
+
   const filtered = tasks.filter(t => {
-    if (filter === 'My Tasks'   && t.assigned_to !== currentUserId) return false
+    if (filter === 'My Tasks'    && t.assigned_to !== currentUserId) return false
     if (filter === 'In Progress' && t.status !== 'in_progress') return false
-    if (filter === 'Overdue'    && !(t.due_date && isOverdue(t.due_date) && t.status !== 'done')) return false
-    if (filter === 'Done'       && t.status !== 'done') return false
+    if (filter === 'Overdue'     && !(t.due_date && isOverdue(t.due_date) && t.status !== 'done')) return false
+    if (filter === 'Done'        && t.status !== 'done') return false
+    if (filter === 'Approved'    && !(t.inform_to === currentUserId && t.inform_status === 'approved')) return false
     if (dateFrom && (!t.due_date || t.due_date < dateFrom)) return false
     if (dateTo   && (!t.due_date || t.due_date > dateTo))   return false
     if (q && !t.title.toLowerCase().includes(q) && !t.description?.toLowerCase().includes(q)) return false
@@ -59,14 +64,37 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
     <div>
       {/* Status filters */}
       <div className="flex gap-2 mb-3 flex-wrap">
-        {FILTERS.map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={cn('px-3 py-1.5 rounded-full text-xs font-semibold border transition-all',
-              filter === f ? 'border-transparent text-white shadow-sm' : 'border-border2 text-[#475569] hover:border-accent hover:text-accent bg-white')}
-            style={filter === f ? {background:'linear-gradient(135deg,#2575fc,#06d6a0)',color:'#fff'} : {}}>
-            {f}
-          </button>
-        ))}
+        {FILTERS.map(f => {
+          const isApproved = f === 'Approved'
+          const isActive   = filter === f
+          return (
+            <button key={f} onClick={() => setFilter(f)}
+              className={cn(
+                'px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5',
+                isActive
+                  ? 'border-transparent text-white shadow-sm'
+                  : isApproved
+                    ? 'border-green-200 text-green-700 bg-green-50 hover:bg-green-100'
+                    : 'border-border2 text-[#475569] hover:border-accent hover:text-accent bg-white'
+              )}
+              style={isActive
+                ? { background: isApproved
+                    ? 'linear-gradient(135deg,#059669,#06d6a0)'
+                    : 'linear-gradient(135deg,#2575fc,#06d6a0)',
+                    color: '#fff' }
+                : {}}>
+              {f}
+              {isApproved && approvedCount > 0 && (
+                <span className={cn(
+                  'min-w-[16px] h-4 rounded-full text-[9px] font-bold flex items-center justify-center px-1',
+                  isActive ? 'bg-white/25 text-white' : 'bg-green-500 text-white'
+                )}>
+                  {approvedCount}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
       {/* Date filter row */}
@@ -159,6 +187,11 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
                   {task.inform_status === 'rejected' && (
                     <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 inline-flex items-center gap-0.5 mt-0.5">
                       ✕ Approval Rejected
+                    </span>
+                  )}
+                  {task.inform_status === 'approved' && task.inform_to === currentUserId && (
+                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-200 inline-flex items-center gap-0.5 mt-0.5">
+                      ✓ Approved by you
                     </span>
                   )}
                 </div>
