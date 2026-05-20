@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import TaskTable from '@/components/tasks/TaskTable'
 import { fetchApprovedByMe } from '@/app/actions/notifications'
-import type { Task } from '@/types'
 
 export default async function AllTasksPage() {
   const supabase = await createClient()
@@ -17,7 +16,7 @@ export default async function AllTasksPage() {
   ])
 
   const seen = new Set<string>()
-  const merged = [...(tasks ?? []), ...(approvedTasks as Task[])].filter(t => {
+  const merged = [...(tasks ?? []), ...approvedTasks].filter(t => {
     if (seen.has(t.id)) return false
     seen.add(t.id)
     return true

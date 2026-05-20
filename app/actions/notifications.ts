@@ -1,6 +1,7 @@
 'use server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import type { Task } from '@/types'
 
 export interface PendingApproval {
   id: string
@@ -24,7 +25,7 @@ export interface TaskDetail {
 }
 
 /** Tasks this user has already approved (inform_to = me, inform_status = approved) */
-export async function fetchApprovedByMe(): Promise<Record<string, unknown>[]> {
+export async function fetchApprovedByMe(): Promise<Task[]> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
@@ -43,7 +44,7 @@ export async function fetchApprovedByMe(): Promise<Record<string, unknown>[]> {
     .eq('inform_status', 'approved')
     .order('updated_at', { ascending: false })
 
-  return (data ?? []) as Record<string, unknown>[]
+  return (data ?? []) as unknown as Task[]
 }
 
 /** Fetch full task detail (bypasses RLS for approver) */

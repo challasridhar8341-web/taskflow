@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 import StatsGrid from '@/components/tasks/StatsGrid'
 import TaskTable from '@/components/tasks/TaskTable'
 import { fetchApprovedByMe } from '@/app/actions/notifications'
-import type { Task } from '@/types'
 
 const PRIORITY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 }
 
@@ -22,7 +21,7 @@ export default async function DashboardPage() {
 
   // Merge + deduplicate by id (a task could appear in both lists)
   const seen = new Set<string>()
-  const merged = [...(tasks ?? []), ...(approvedTasks as Task[])].filter(t => {
+  const merged = [...(tasks ?? []), ...approvedTasks].filter(t => {
     if (seen.has(t.id)) return false
     seen.add(t.id)
     return true
