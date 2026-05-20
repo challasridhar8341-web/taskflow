@@ -13,7 +13,7 @@ const statusOptions: { value: TaskStatus; label: string; icon: React.ElementType
   { value: 'done',        label: 'Done',         icon: CheckCircle,  color: 'text-green-400' },
 ]
 
-export default function TaskOptionsMenu({ task, currentUserId }: { task: Task; currentUserId: string }) {
+export default function TaskOptionsMenu({ task, currentUserId, onEdit }: { task: Task; currentUserId: string; onEdit: () => void }) {
   const [open, setOpen] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -57,6 +57,13 @@ export default function TaskOptionsMenu({ task, currentUserId }: { task: Task; c
         <div className="absolute right-0 top-full mt-1 w-44 bg-surface border border-border rounded-xl shadow-2xl z-50 overflow-hidden py-1">
           {!confirming ? (
             <>
+              <button
+                onClick={() => { onEdit(); setOpen(false) }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-blue-400 hover:bg-surface2 transition-colors">
+                <Pencil size={12} />
+                Edit Details
+              </button>
+              <div className="border-t border-border my-1" />
               <div className="px-3 py-1.5 text-[10px] text-gray-500 uppercase tracking-wider font-medium">Set Status</div>
               {statusOptions.map(({ value, label, icon: Icon, color }) => (
                 <button

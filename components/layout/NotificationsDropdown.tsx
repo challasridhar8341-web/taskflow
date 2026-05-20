@@ -4,9 +4,10 @@ import { useRouter } from 'next/navigation'
 import { Bell, AlertCircle, X, CheckCircle, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { fetchPendingApprovals, countPendingApprovals } from '@/app/actions/notifications'
+import type { PendingApproval } from '@/app/actions/notifications'
 
 interface OverdueTask { id: string; title: string; due_date: string; priority: string }
-interface PendingTask { id: string; title: string; description?: string; inform_to: string }
 
 const priorityDot = (p: string) =>
   p === 'high' ? 'bg-red-500' : p === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
@@ -16,19 +17,17 @@ function daysOverdue(dateStr: string) {
   return diff === 1 ? '1 day overdue' : `${diff} days overdue`
 }
 
-const READ_KEY = 'taskflow_notif_read_at'
-
 export default function NotificationsDropdown({ currentUserId }: { currentUserId: string }) {
-  const [open, setOpen] = useState(false)
-  const [overdue, setOverdue] = useState<OverdueTask[]>([])
-  const [pending, setPending] = useState<PendingTask[]>([])
-  const [loading, setLoading] = useState(false)
+  const [open, setOpen]           = useState(false)
+  const [overdue, setOverdue]     = useState<OverdueTask[]>([])
+  const [pending, setPending]     = useState<PendingApproval[]>([])
+  const [loading, setLoading]     = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
-  const ref = useRef<HTMLDivElement>(null)
+  const ref    = useRef<HTMLDivElement>(null)
   const supabase = createClient()
   const router = useRouter()
 
-  // Count unread on mount
+  // Badge count on mount — use server action so RLS doesn't block inform_to query
   useEffect(() => {
     if (!currentUserId) return
     async function countUnread() {
@@ -38,13 +37,8 @@ export default function NotificationsDropdown({ currentUserId }: { currentUserId
         .lt('due_date', today)
         .neq('status', 'done')
         .or(`assigned_to.eq.${currentUserId},assigned_by.eq.${currentUserId}`)
-      let pdCount = 0
-      try {
-        const { data: pd } = await supabase.from('tasks').select('id')
-          .eq('inform_to', currentUserId).eq('inform_status', 'pending')
-        pdCount = pd?.length || 0
-      } catch {}
-      setUnreadCount((od?.length || 0) + pdCount)
+      const pdCount = await countPendingApprovals()
+      setUnreadCount((od?.length ?? 0) + pdCount)
     }
     countUnread()
   }, [currentUserId])
@@ -69,14 +63,10 @@ export default function NotificationsDropdown({ currentUserId }: { currentUserId
       .order('due_date')
       .limit(10)
 
-    let pdData: PendingTask[] = []
-    try {
-      const { data: pd } = await supabase.from('tasks').select('id, title, description, inform_to')
-        .eq('inform_to', currentUserId).eq('inform_status', 'pending')
-      pdData = (pd || []) as PendingTask[]
-    } catch {}
+    // Use server action — bypasses RLS so approver can see inform_to tasks
+    const pdData = await fetchPendingApprovals()
 
-    setOverdue(od || [])
+    setOverdue(od ?? [])
     setPending(pdData)
     setLoading(false)
   }
@@ -84,14 +74,12 @@ export default function NotificationsDropdown({ currentUserId }: { currentUserId
   function toggle() {
     if (!open) {
       fetchData()
-      const now = Date.now()
-      localStorage.setItem(READ_KEY, String(now))
       setUnreadCount(0)
     }
     setOpen(o => !o)
   }
 
-  async function handleApprove(task: PendingTask) {
+  async function handleApprove(task: PendingApproval) {
     await supabase.from('tasks').update({
       inform_status: 'approved',
       updated_at: new Date().toISOString(),
@@ -105,7 +93,7 @@ export default function NotificationsDropdown({ currentUserId }: { currentUserId
     router.refresh()
   }
 
-  async function handleReject(task: PendingTask) {
+  async function handleReject(task: PendingApproval) {
     await supabase.from('tasks').update({
       inform_status: 'rejected',
       updated_at: new Date().toISOString(),

@@ -160,7 +160,11 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
     setLoading(true)
     const supabase = createClient()
 
-    const isInform = !!form.inform_to
+    const effectiveAssignee = form.assigned_to || currentUserId
+    // Safety: block same-user approval (creator or assignee can't be their own approver)
+    const safeInformTo = (form.inform_to && form.inform_to !== currentUserId && form.inform_to !== effectiveAssignee)
+      ? form.inform_to : ''
+    const isInform = !!safeInformTo
     const basePayload = {
       title: form.title,
       description: form.description,
@@ -176,7 +180,7 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
     let { data: task, error } = await supabase.from('tasks').insert({
       ...basePayload,
       team: form.team || null,
-      inform_to: form.inform_to || null,
+      inform_to: safeInformTo || null,
       inform_status: isInform ? 'pending' : 'none',
     }).select().single()
 
@@ -275,7 +279,11 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
               Select an approver — the assignee will see the task once approved.
             </p>
             <MemberPicker
-              profiles={profiles.filter(p => p.id !== currentUserId && p.id !== form.assigned_to)}
+              profiles={profiles.filter(p => {
+                // Exclude creator and effective assignee — they can't be their own approver
+                const effectiveAssignee = form.assigned_to || currentUserId
+                return p.id !== currentUserId && p.id !== effectiveAssignee
+              })}
               value={form.inform_to}
               onChange={id => setForm(f => ({ ...f, inform_to: id }))}
               placeholder="No approval needed"

@@ -6,6 +6,7 @@ import { formatDate, isOverdue, priorityColor, priorityLabel, statusColor, statu
 import type { Task } from '@/types'
 import { Calendar, X } from 'lucide-react'
 import TaskOptionsMenu from '@/components/tasks/TaskOptionsMenu'
+import EditTaskModal from '@/components/tasks/EditTaskModal'
 
 const FILTERS = ['All', 'My Tasks', 'In Progress', 'Overdue', 'Done']
 
@@ -18,6 +19,7 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
   const [filter, setFilter] = useState('All')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const q = searchParams.get('q')?.toLowerCase() || ''
@@ -206,13 +208,20 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
               </div>
 
               <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity justify-end pr-1">
-                <TaskOptionsMenu task={task} currentUserId={currentUserId} />
+                <TaskOptionsMenu task={task} currentUserId={currentUserId} onEdit={() => setEditingTask(task)} />
               </div>
             </div>
           )
         })}
       </div>
 
+      {editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          currentUserId={currentUserId}
+          onClose={() => setEditingTask(null)}
+        />
+      )}
     </div>
   )
 }
