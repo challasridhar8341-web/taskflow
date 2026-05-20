@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { adminLogin } from '@/app/admin/login/actions'
+import { adminLoginFromUnified } from './actions'
 import { Eye, EyeOff, User, ShieldCheck, Lock, Mail, BadgeCheck } from 'lucide-react'
 
 export default function LoginPage() {
@@ -58,7 +58,7 @@ export default function LoginPage() {
   async function handleAdminSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true); setError('')
-    const result = await adminLogin(username, adminPass)
+    const result = await adminLoginFromUnified(username, adminPass)
     if (result?.error) { setError(result.error); setLoading(false) }
   }
 
@@ -81,14 +81,14 @@ export default function LoginPage() {
 
         {/* Toggle */}
         <div className="flex rounded-2xl p-1 mb-5 shadow-sm" style={{background:'rgba(255,255,255,0.8)',border:'1px solid rgba(26,58,140,0.10)'}}>
-          <button onClick={() => switchMode('user')}
+          <button type="button" onClick={() => switchMode('user')}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
             style={mode === 'user'
               ? {background:'linear-gradient(135deg,#2575fc,#06d6a0)',color:'#fff',boxShadow:'0 2px 8px rgba(37,117,252,0.3)'}
               : {color:'#64748b'}}>
             <User size={14}/> User
           </button>
-          <button onClick={() => switchMode('admin')}
+          <button type="button" onClick={() => switchMode('admin')}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
             style={mode === 'admin'
               ? {background:'linear-gradient(135deg,#2575fc,#06d6a0)',color:'#fff',boxShadow:'0 2px 8px rgba(37,117,252,0.3)'}
