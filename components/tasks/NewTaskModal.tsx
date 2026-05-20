@@ -129,13 +129,15 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
+  const todayStr = new Date().toISOString().split('T')[0]
+
   const [form, setForm] = useState({
     title: '', description: '',
     assigned_to: '',
     inform_to: '',
     priority: 'medium' as Priority,
     status: 'todo' as TaskStatus,
-    start_date: '', due_date: '', team: '',
+    start_date: todayStr, due_date: '', team: '',
   })
 
   useEffect(() => {
@@ -302,11 +304,21 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
             <div>
               <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>Start Date</label>
               <input className="input" type="date" value={form.start_date}
-                onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} />
+                min={todayStr}
+                onChange={e => {
+                  const val = e.target.value
+                  setForm(f => ({
+                    ...f,
+                    start_date: val,
+                    // If end date is now before start date, reset it
+                    due_date: f.due_date && f.due_date < val ? val : f.due_date,
+                  }))
+                }} />
             </div>
             <div>
               <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>End Date</label>
               <input className="input" type="date" value={form.due_date}
+                min={form.start_date || todayStr}
                 onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
             </div>
           </div>

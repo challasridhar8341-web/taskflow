@@ -43,10 +43,10 @@ function fmtDate(d?: string) {
 function MetaCard({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-start gap-2.5 p-3 rounded-xl"
-      style={{ background: '#f8faff', border: '1px solid rgba(26,58,140,0.10)' }}>
+      style={{ background: '#f0f4ff', border: '1px solid #c7d7ff' }}>
       <Icon size={14} className="flex-shrink-0 mt-0.5" style={{ color: '#2575fc' }} />
       <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>{label}</p>
+        <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#2575fc' }}>{label}</p>
         {children}
       </div>
     </div>
@@ -76,20 +76,20 @@ function TaskPreviewModal({
         style={{ background: '#ffffff', border: '1px solid rgba(26,58,140,0.12)' }}>
 
         {/* Header — gradient band */}
-        <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg,#eef2fb 0%,#e0faf3 100%)', borderBottom: '1px solid rgba(26,58,140,0.10)' }}>
+        <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg,#1e3a8a 0%,#2575fc 60%,#06d6a0 100%)', borderBottom: 'none' }}>
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-3"
-                style={{ background: '#fef9c3', color: '#b45309', border: '1px solid #fde68a' }}>
+                style={{ background: 'rgba(255,255,255,0.20)', color: '#fff', border: '1px solid rgba(255,255,255,0.35)' }}>
                 ⏳ Pending Your Approval
               </span>
-              <h2 className="text-lg font-bold leading-snug" style={{ color: '#1e3a8a' }}>
+              <h2 className="text-lg font-bold leading-snug" style={{ color: '#ffffff' }}>
                 {task.title}
               </h2>
             </div>
             <button onClick={onClose}
-              className="p-1.5 rounded-lg transition-colors flex-shrink-0 hover:bg-black/5"
-              style={{ color: '#64748b' }}>
+              className="p-1.5 rounded-lg transition-colors flex-shrink-0"
+              style={{ color: 'rgba(255,255,255,0.8)', background: 'rgba(255,255,255,0.15)' }}>
               <X size={18} />
             </button>
           </div>
@@ -100,16 +100,16 @@ function TaskPreviewModal({
 
           {/* Description */}
           {task.description ? (
-            <div className="flex gap-2.5 p-3.5 rounded-xl" style={{ background: '#f8faff', border: '1px solid rgba(26,58,140,0.08)' }}>
+            <div className="flex gap-2.5 p-3.5 rounded-xl" style={{ background: '#f0f4ff', border: '1px solid #c7d7ff' }}>
               <AlignLeft size={15} className="flex-shrink-0 mt-0.5" style={{ color: '#2575fc' }} />
-              <p className="text-sm leading-relaxed" style={{ color: '#334155' }}>
+              <p className="text-sm leading-relaxed font-medium" style={{ color: '#0f172a' }}>
                 {task.description}
               </p>
             </div>
           ) : (
-            <div className="flex gap-2.5 p-3.5 rounded-xl" style={{ background: '#f8faff', border: '1px solid rgba(26,58,140,0.08)' }}>
+            <div className="flex gap-2.5 p-3.5 rounded-xl" style={{ background: '#f8faff', border: '1px solid #e2e8f0' }}>
               <AlignLeft size={15} className="flex-shrink-0 mt-0.5" style={{ color: '#94a3b8' }} />
-              <p className="text-sm italic" style={{ color: '#94a3b8' }}>No description provided.</p>
+              <p className="text-sm italic" style={{ color: '#64748b' }}>No description provided.</p>
             </div>
           )}
 
@@ -117,13 +117,13 @@ function TaskPreviewModal({
           <div className="grid grid-cols-2 gap-2.5">
 
             <MetaCard icon={User} label="Assigned To">
-              <p className="text-sm font-semibold" style={{ color: '#1e3a8a' }}>
+              <p className="text-sm font-bold" style={{ color: '#0f172a' }}>
                 {task.assignee?.full_name ?? 'Not assigned'}
               </p>
             </MetaCard>
 
             <MetaCard icon={User} label="Requested By">
-              <p className="text-sm font-semibold" style={{ color: '#1e3a8a' }}>
+              <p className="text-sm font-bold" style={{ color: '#0f172a' }}>
                 {task.assigner?.full_name ?? '—'}
               </p>
             </MetaCard>
@@ -143,11 +143,11 @@ function TaskPreviewModal({
             </MetaCard>
 
             <MetaCard icon={Calendar} label="Start Date">
-              <p className="text-sm font-semibold" style={{ color: '#1e3a8a' }}>{fmtDate(task.start_date)}</p>
+              <p className="text-sm font-bold" style={{ color: '#0f172a' }}>{fmtDate(task.start_date)}</p>
             </MetaCard>
 
             <MetaCard icon={Calendar} label="Due Date">
-              <p className="text-sm font-semibold" style={{ color: '#1e3a8a' }}>{fmtDate(task.due_date)}</p>
+              <p className="text-sm font-bold" style={{ color: '#0f172a' }}>{fmtDate(task.due_date)}</p>
             </MetaCard>
 
           </div>
@@ -155,21 +155,21 @@ function TaskPreviewModal({
           {/* Team — full-width if present */}
           {task.team && (
             <MetaCard icon={Tag} label="Team">
-              <p className="text-sm font-semibold" style={{ color: '#1e3a8a' }}>{task.team}</p>
+              <p className="text-sm font-bold" style={{ color: '#0f172a' }}>{task.team}</p>
             </MetaCard>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 px-6 py-4" style={{ borderTop: '1px solid rgba(26,58,140,0.08)', background: '#f8faff' }}>
+        <div className="flex gap-3 px-6 py-4" style={{ borderTop: '1px solid #e2e8f0', background: '#ffffff' }}>
           <button onClick={onClose} disabled={actionLoading}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all hover:bg-gray-50 disabled:opacity-50"
-            style={{ borderColor: 'rgba(26,58,140,0.15)', color: '#64748b', background: '#fff' }}>
+            className="flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all hover:bg-slate-50 disabled:opacity-50"
+            style={{ borderColor: '#cbd5e1', color: '#475569', background: '#f8fafc' }}>
             Close
           </button>
           <button onClick={onReject} disabled={actionLoading}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-50"
-            style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+            className="flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-50"
+            style={{ background: '#dc2626', color: '#ffffff', border: 'none' }}>
             {actionLoading ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
             Reject
           </button>
