@@ -3,13 +3,12 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { X, Bell } from 'lucide-react'
-import type { Profile, Project, Priority, TaskStatus } from '@/types'
+import type { Profile, Priority, TaskStatus } from '@/types'
 
 const TEAMS = ['Tech', 'Design', 'Marketing', 'Content', 'HR', 'Other']
 
 export default function NewTaskModal({ onClose, currentUserId }: { onClose: () => void; currentUserId: string }) {
   const [profiles, setProfiles] = useState<Profile[]>([])
-  const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -19,18 +18,14 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
     inform_to: '',
     priority: 'medium' as Priority,
     status: 'todo' as TaskStatus,
-    due_date: '', project_id: '', team: '',
+    due_date: '', team: '',
   })
 
   useEffect(() => {
     const supabase = createClient()
     async function load() {
-      const [{ data: p }, { data: pr }] = await Promise.all([
-        supabase.from('profiles').select('*'),
-        supabase.from('projects').select('*'),
-      ])
+      const { data: p } = await supabase.from('profiles').select('*')
       setProfiles(p || [])
-      setProjects(pr || [])
     }
     load()
   }, [])
@@ -49,7 +44,7 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
       priority: form.priority,
       status: form.status,
       due_date: form.due_date || null,
-      project_id: form.project_id || null,
+      project_id: null,
       assigned_by: currentUserId,
       assigned_to: isInform ? currentUserId : (form.assigned_to || currentUserId),
     }
@@ -179,16 +174,6 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
                 <option value="done">Done</option>
               </select>
             </div>
-          </div>
-
-          {/* Project */}
-          <div>
-            <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Project</label>
-            <select className="input" value={form.project_id}
-              onChange={e => setForm(f => ({ ...f, project_id: e.target.value }))}>
-              <option value="">No project</option>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
           </div>
 
           <div className="flex gap-3 pt-2">

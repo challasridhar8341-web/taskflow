@@ -25,22 +25,14 @@ export default function LoginPage() {
         options: { data: { full_name: fullName } }
       })
       if (signUpError) { setError(signUpError.message); setLoading(false); return }
-
-      // Email already registered (identities empty = duplicate account)
       if (signUpData.user && signUpData.user.identities?.length === 0) {
         setError('This email is already registered. Please sign in instead.')
-        setLoading(false)
-        return
+        setLoading(false); return
       }
-
-      // Email confirmation required — no session yet
       if (!signUpData.session) {
         setSuccess('Account created! Check your email to confirm, then sign in.')
-        setLoading(false)
-        return
+        setLoading(false); return
       }
-
-      // Confirmed immediately (email confirmation disabled) — upsert profile as fallback
       if (signUpData.user) {
         await supabase.from('profiles').upsert({ id: signUpData.user.id, email, full_name: fullName })
       }
@@ -59,39 +51,39 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center font-display font-black text-white">TF</div>
-            <span className="font-display font-bold text-xl">Task<span className="text-accent2">Flow</span></span>
+            <div className="w-11 h-11 bg-accent rounded-2xl flex items-center justify-center font-bold !text-white text-base shadow-md">TF</div>
+            <span className="font-bold text-2xl text-accent">Task<span className="text-accent2">Flow</span></span>
           </div>
-          <p className="text-gray-500 text-sm">{isSignup ? 'Create your account' : 'Sign in to your workspace'}</p>
+          <p className="text-[#64748b] text-sm mt-1">{isSignup ? 'Create your account' : 'Sign in to your workspace'}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="card p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="card p-7 space-y-4 shadow-md">
           {isSignup && (
             <div>
-              <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Full Name</label>
+              <label className="block text-xs text-[#64748b] uppercase tracking-wider mb-1.5 font-semibold">Full Name</label>
               <input className="input" type="text" placeholder="Arjun Kumar" value={fullName} onChange={e => setFullName(e.target.value)} required />
             </div>
           )}
           <div>
-            <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Email</label>
+            <label className="block text-xs text-[#64748b] uppercase tracking-wider mb-1.5 font-semibold">Email</label>
             <input className="input" type="email" placeholder="you@company.com" value={email} onChange={e => setEmail(e.target.value)} required />
           </div>
           <div>
-            <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Password</label>
+            <label className="block text-xs text-[#64748b] uppercase tracking-wider mb-1.5 font-semibold">Password</label>
             <input className="input" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
           </div>
 
-          {error && <p className="text-red-400 text-sm">{error}</p>}
-          {success && <p className="text-green-400 text-sm">{success}</p>}
+          {error && <p className="text-red-500 text-sm bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+          {success && <p className="text-green-600 text-sm bg-green-50 px-3 py-2 rounded-lg">{success}</p>}
 
-          <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-2.5 text-sm font-semibold">
+          <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3 text-sm font-semibold mt-2">
             {loading ? 'Please wait...' : isSignup ? 'Create Account' : 'Sign In'}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
+        <p className="text-center text-sm text-[#64748b] mt-5">
           {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
-          <button onClick={() => setIsSignup(!isSignup)} className="text-accent2 hover:underline">
+          <button onClick={() => setIsSignup(!isSignup)} className="text-accent2 font-semibold hover:underline">
             {isSignup ? 'Sign in' : 'Sign up'}
           </button>
         </p>

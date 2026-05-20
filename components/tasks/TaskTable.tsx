@@ -59,27 +59,33 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
       <div className="flex gap-2 mb-3 flex-wrap">
         {FILTERS.map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className={cn('px-3 py-1.5 rounded-full text-xs border transition-colors',
-              filter === f ? 'bg-accent/15 border-accent text-accent2' : 'border-border2 text-gray-400 hover:text-white')}>
+            className={cn('px-3 py-1.5 rounded-full text-xs font-semibold border transition-all',
+              filter === f ? 'border-transparent text-white shadow-sm' : 'border-border2 text-[#475569] hover:border-accent hover:text-accent bg-white')}
+            style={filter === f ? {background:'linear-gradient(135deg,#2575fc,#06d6a0)',color:'#fff'} : {}}>
             {f}
           </button>
         ))}
       </div>
 
       {/* Date filter row */}
-      <div className="flex items-center gap-2 mb-4 flex-wrap p-3 bg-surface2/50 rounded-xl border border-border">
-        <div className="flex items-center gap-1.5 text-gray-400 mr-1">
+      <div className="flex items-center gap-2 mb-4 flex-wrap p-3 rounded-xl border border-border" style={{background:'linear-gradient(135deg,#f0fbff 0%,#e8fdf5 100%)'}}>
+        <div className="flex items-center gap-1.5 mr-1" style={{color:'#1e3a8a'}}>
           <Calendar size={13} />
-          <span className="text-xs font-medium">Due date</span>
+          <span className="text-xs font-bold">Due date</span>
         </div>
 
         {/* Quick filters */}
         {(['today', 'week', 'overdue'] as const).map(type => (
           <button key={type} onClick={() => quickDate(type)}
-            className={cn('px-2.5 py-1 rounded-lg text-xs border transition-colors capitalize',
+            className={cn('px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all',
               (type === 'today' && isToday) || (type === 'week' && isWeek) || (type === 'overdue' && isOverdueFilter)
-                ? 'bg-accent/15 border-accent text-accent2'
-                : 'border-border2 text-gray-400 hover:text-white hover:border-gray-500')}>
+                ? 'border-transparent text-white'
+                : 'border-border2 bg-white hover:border-accent')}
+            style={
+              (type === 'today' && isToday) || (type === 'week' && isWeek) || (type === 'overdue' && isOverdueFilter)
+                ? {background:'linear-gradient(135deg,#2575fc,#06d6a0)',color:'#fff'}
+                : {color:'#475569'}
+            }>
             {type === 'week' ? 'This Week' : type.charAt(0).toUpperCase() + type.slice(1)}
           </button>
         ))}
@@ -111,12 +117,12 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
           </button>
         )}
 
-        <span className="ml-auto text-xs text-gray-500">{filtered.length} task{filtered.length !== 1 ? 's' : ''}</span>
+        <span className="ml-auto text-xs font-semibold" style={{color:'#1e3a8a'}}>{filtered.length} task{filtered.length !== 1 ? 's' : ''}</span>
       </div>
 
       {/* Table */}
       <div className="card overflow-visible">
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] px-4 py-2.5 bg-surface2 border-b border-border text-[10px] text-gray-500 uppercase tracking-widest font-medium rounded-t-xl">
+        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] px-4 py-2.5 border-b border-border text-[10px] uppercase tracking-widest font-bold rounded-t-xl" style={{background:'linear-gradient(135deg,#eef9ff 0%,#e0faf3 100%)',color:'#1e3a8a'}}>
           <div>Task</div><div>Assignee</div><div>Priority</div><div>Due</div><div>Status</div><div />
         </div>
 
@@ -136,7 +142,7 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
                     done ? 'bg-green-500 border-green-500' : 'border-gray-600 hover:border-accent')}>
                   {done && <span className="text-white text-[9px] font-bold">✓</span>}
                 </button>
-                <span className={cn('text-sm font-medium truncate', done && 'line-through text-gray-500')}>{task.title}</span>
+                <span className={cn('text-sm font-semibold truncate', done ? 'line-through text-[#94a3b8]' : 'text-[#1e3a8a]')}>{task.title}</span>
               </div>
 
               <div>
@@ -145,7 +151,7 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
                     <div className={cn('w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] font-bold', avatarColor(task.assignee.full_name))}>
                       {initials(task.assignee.full_name)}
                     </div>
-                    <span className="text-xs text-gray-400 truncate max-w-[70px]">{task.assignee.full_name.split(' ')[0]}</span>
+                    <span className="text-xs font-medium truncate max-w-[70px]" style={{color:'#475569'}}>{task.assignee.full_name.split(' ')[0]}</span>
                   </div>
                 )}
               </div>
@@ -154,7 +160,7 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
                 <span className={cn('badge', priorityColor(task.priority))}>{priorityLabel(task.priority)}</span>
               </div>
 
-              <div className={cn('text-xs font-medium', overdue ? 'text-red-400' : 'text-gray-400')}>
+              <div className={cn('text-xs font-medium', overdue ? 'text-red-500' : 'text-[#475569]')}>
                 {task.due_date ? formatDate(task.due_date) : '—'}
                 {overdue && <span className="ml-1">⚠</span>}
               </div>

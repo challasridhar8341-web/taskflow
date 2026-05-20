@@ -3,35 +3,66 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0d0f14;
-  --surface: #14171f;
-  --surface2: #1c2030;
+  --bg: #eef2fb;
+  --surface: #ffffff;
+  --surface2: #f0f4ff;
+  --text-primary: #1e3a8a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
 }
 
-body { background: var(--bg); }
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
+/* Remap text-white → navy in light theme (inside @layer base avoids circular dep) */
+@layer base {
+  .text-white { color: var(--text-primary); }
+}
+
+/* Restore actual white where needed — higher specificity wins */
+.btn-primary,
+.badge-white,
+.nav-item-active { color: #ffffff !important; }
+
+/* Gray overrides for light theme */
+.text-gray-300 { color: #64748b; }
+.text-gray-400 { color: #64748b; }
+.text-gray-500 { color: #94a3b8; }
+.text-gray-600 { color: #cbd5e1; }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-
-.font-display { font-family: 'Syne', sans-serif; }
+::-webkit-scrollbar-thumb { background: rgba(26,58,140,0.15); border-radius: 3px; }
 
 @layer components {
-  .card { @apply bg-surface border border-border rounded-xl; }
+  .card {
+    @apply bg-surface border border-border rounded-2xl shadow-sm;
+  }
+
   .input {
-    @apply w-full bg-surface2 border border-border2 rounded-lg px-3 py-2.5
-           text-sm text-white placeholder-gray-500 outline-none
-           focus:border-accent transition-colors;
+    @apply w-full bg-surface2 border border-border2 rounded-xl px-3 py-2.5
+           text-sm outline-none focus:border-accent2 transition-colors;
+    color: var(--text-primary);
   }
+  .input::placeholder { color: var(--text-muted); }
+
   .btn-primary {
-    @apply flex items-center gap-2 px-4 py-2 bg-accent hover:bg-indigo-500
-           text-white text-sm font-medium rounded-lg transition-colors;
+    @apply flex items-center gap-2 px-5 py-2.5
+           text-sm font-semibold rounded-full transition-all shadow-sm
+           hover:shadow-md hover:-translate-y-px;
+    background: linear-gradient(135deg, #2575fc 0%, #06d6a0 100%);
+    color: #ffffff !important;
   }
+
   .btn-ghost {
-    @apply flex items-center gap-2 px-3 py-2 bg-surface2 hover:bg-white/10
-           text-gray-300 text-sm rounded-lg border border-border2 transition-colors;
+    @apply flex items-center gap-2 px-3 py-2 bg-surface2 hover:bg-blue-50
+           text-sm rounded-xl border border-border2 transition-colors;
+    color: var(--text-secondary);
   }
+
   .badge {
-    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold;
   }
 }

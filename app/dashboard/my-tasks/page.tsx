@@ -24,9 +24,9 @@ export default async function MyTasksPage() {
           <p className="text-sm text-gray-500 mt-1">{allTasks.length} tasks assigned to you</p>
         </div>
         <div className="flex gap-4 text-sm">
-          <span className="text-gray-400">{todoCount} <span className="text-gray-600">to do</span></span>
-          <span className="text-blue-400">{inProgressCount} <span className="text-gray-600">in progress</span></span>
-          <span className="text-green-400">{doneCount} <span className="text-gray-600">done</span></span>
+          <span className="font-bold text-slate-600">{todoCount} <span className="font-normal text-[#94a3b8]">to do</span></span>
+          <span className="font-bold text-blue-600">{inProgressCount} <span className="font-normal text-[#94a3b8]">in progress</span></span>
+          <span className="font-bold text-green-600">{doneCount} <span className="font-normal text-[#94a3b8]">done</span></span>
         </div>
       </div>
       <TaskTable tasks={allTasks} currentUserId={user!.id} />

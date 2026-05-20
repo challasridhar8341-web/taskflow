@@ -8,17 +8,17 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['DM Sans', 'sans-serif'],
-        display: ['Syne', 'sans-serif'],
+        sans: ['Poppins', 'sans-serif'],
+        display: ['Poppins', 'sans-serif'],
       },
       colors: {
-        bg: '#0d0f14',
-        surface: '#14171f',
-        surface2: '#1c2030',
-        border: 'rgba(255,255,255,0.06)',
-        border2: 'rgba(255,255,255,0.1)',
-        accent: '#6366f1',
-        accent2: '#818cf8',
+        bg:       '#eef2fb',
+        surface:  '#ffffff',
+        surface2: '#f0f4ff',
+        border:   'rgba(26,58,140,0.10)',
+        border2:  'rgba(26,58,140,0.15)',
+        accent:   '#2575fc',
+        accent2:  '#06d6a0',
       },
     },
   },
