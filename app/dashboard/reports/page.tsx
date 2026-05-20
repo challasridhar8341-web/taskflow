@@ -21,14 +21,13 @@ function StatBar({ label, value, max, color }: BarProps) {
 
 export default async function ReportsPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: tasks }, { data: profiles }] = await Promise.all([
-    supabase
-      .from('tasks')
-      .select('*, assignee:profiles!tasks_assigned_to_fkey(id, full_name), project:projects(name)')
-      .order('created_at', { ascending: false }),
-    supabase.from('profiles').select('id, full_name, email'),
-  ])
+  const { data: tasks } = await supabase
+    .from('tasks')
+    .select('*, assignee:profiles!tasks_assigned_to_fkey(id, full_name), project:projects(name)')
+    .or(`assigned_to.eq.${user!.id},assigned_by.eq.${user!.id}`)
+    .order('created_at', { ascending: false })
 
   const all = tasks || []
   const total      = all.length
@@ -42,18 +41,16 @@ export default async function ReportsPage() {
   const overdue    = all.filter(t => t.due_date && new Date(t.due_date) < new Date() && t.status !== 'done').length
   const completionPct = total > 0 ? Math.round((done / total) * 100) : 0
 
-  const kpis = [
-    { label: 'Total Tasks',   value: total,           sub: 'across all projects',    color: 'from-blue-500/20 to-transparent',   bar: 'bg-blue-500' },
-    { label: 'Completed',     value: `${completionPct}%`, sub: `${done} of ${total} tasks`, color: 'from-green-500/20 to-transparent', bar: 'bg-green-500' },
-    { label: 'In Progress',   value: inProgress,      sub: 'being worked on now',    color: 'from-yellow-500/20 to-transparent', bar: 'bg-yellow-500' },
-    { label: 'Overdue',       value: overdue,         sub: 'past their due date',    color: 'from-red-500/20 to-transparent',    bar: 'bg-red-500' },
-  ]
+  // Split: tasks assigned TO me vs tasks I assigned to others
+  const myTasks      = all.filter(t => t.assigned_to === user!.id)
+  const assignedByMe = all.filter(t => t.assigned_by === user!.id && t.assigned_to !== user!.id)
 
-  const memberStats = (profiles || []).map(p => ({
-    name: p.full_name,
-    total: all.filter(t => t.assigned_to === p.id).length,
-    done:  all.filter(t => t.assigned_to === p.id && t.status === 'done').length,
-  })).filter(m => m.total > 0)
+  const kpis = [
+    { label: 'My Tasks',    value: total,           sub: 'tasks you\'re involved in',   color: 'from-blue-500/20 to-transparent',   bar: 'bg-blue-500' },
+    { label: 'Completed',   value: `${completionPct}%`, sub: `${done} of ${total} done`, color: 'from-green-500/20 to-transparent', bar: 'bg-green-500' },
+    { label: 'In Progress', value: inProgress,      sub: 'being worked on now',          color: 'from-yellow-500/20 to-transparent', bar: 'bg-yellow-500' },
+    { label: 'Overdue',     value: overdue,         sub: 'past their due date',          color: 'from-red-500/20 to-transparent',    bar: 'bg-red-500' },
+  ]
 
   const statusColors: Record<string, string> = {
     todo: 'text-gray-400 bg-gray-400/10',
@@ -99,28 +96,40 @@ export default async function ReportsPage() {
           <StatBar label="Low"    value={low}    max={total} color="bg-green-500" />
           <div className="pt-2 border-t border-border">
             <p className="text-xs text-gray-500">
-              {high > 0 ? `${Math.round(high/total*100)}% of tasks are high priority` : 'No high-priority tasks'}
+              {high > 0 ? `${Math.round(high/total*100)}% of your tasks are high priority` : 'No high-priority tasks'}
             </p>
           </div>
         </div>
 
         <div className="card p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-white">Team Performance</h3>
-          {memberStats.length === 0
-            ? <p className="text-xs text-gray-500">No team data yet</p>
-            : memberStats.map(m => (
-              <div key={m.name} className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">{m.name.split(' ')[0]}</span>
-                  <span className="text-xs text-gray-500 tabular-nums">{m.done}/{m.total} done</span>
-                </div>
-                <div className="h-2 bg-surface rounded-full overflow-hidden">
-                  <div className="h-full bg-accent rounded-full transition-all duration-500"
-                    style={{ width: m.total > 0 ? `${Math.round(m.done / m.total * 100)}%` : '0%' }} />
-                </div>
-              </div>
-            ))
-          }
+          <h3 className="text-sm font-semibold text-white">My Activity</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-300">Assigned to me</span>
+              <span className="text-sm font-bold text-white tabular-nums">{myTasks.length}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-300">Assigned by me</span>
+              <span className="text-sm font-bold text-white tabular-nums">{assignedByMe.length}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-300">Completed</span>
+              <span className="text-sm font-bold text-green-400 tabular-nums">{done}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-300">Overdue</span>
+              <span className={`text-sm font-bold tabular-nums ${overdue > 0 ? 'text-red-400' : 'text-gray-500'}`}>{overdue}</span>
+            </div>
+          </div>
+          <div className="pt-2 border-t border-border">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-gray-500">Completion rate</span>
+              <span className="text-xs font-bold text-accent">{completionPct}%</span>
+            </div>
+            <div className="h-2 bg-surface rounded-full overflow-hidden">
+              <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${completionPct}%` }} />
+            </div>
+          </div>
         </div>
       </div>
 

@@ -24,5 +24,5 @@ export async function adminLogin(username: string, password: string): Promise<{ 
 export async function adminLogout() {
   const cookieStore = await cookies()
   cookieStore.delete('admin_session')
-  redirect('/admin/login')
+  redirect('/auth/login')
 }

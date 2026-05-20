@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Bell, AlertCircle, X, CheckCircle, XCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
@@ -25,6 +26,7 @@ export default function NotificationsDropdown({ currentUserId }: { currentUserId
   const [unreadCount, setUnreadCount] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
   const supabase = createClient()
+  const router = useRouter()
 
   // Count unread on mount
   useEffect(() => {
@@ -100,6 +102,8 @@ export default function NotificationsDropdown({ currentUserId }: { currentUserId
     })
     setPending(p => p.filter(t => t.id !== task.id))
     setUnreadCount(c => Math.max(0, c - 1))
+    setOpen(false)
+    router.refresh()
   }
 
   async function handleReject(task: PendingTask) {
@@ -112,6 +116,8 @@ export default function NotificationsDropdown({ currentUserId }: { currentUserId
     })
     setPending(p => p.filter(t => t.id !== task.id))
     setUnreadCount(c => Math.max(0, c - 1))
+    setOpen(false)
+    router.refresh()
   }
 
   return (

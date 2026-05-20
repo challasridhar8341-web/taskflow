@@ -147,7 +147,19 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
                     done ? 'bg-green-500 border-green-500' : 'border-gray-600 hover:border-accent')}>
                   {done && <span className="text-white text-[9px] font-bold">✓</span>}
                 </button>
-                <span className={cn('text-sm font-semibold truncate', done ? 'line-through text-[#94a3b8]' : 'text-[#1e3a8a]')}>{task.title}</span>
+                <div className="min-w-0 flex-1">
+                  <span className={cn('text-sm font-semibold truncate block', done ? 'line-through text-[#94a3b8]' : 'text-[#1e3a8a]')}>{task.title}</span>
+                  {task.inform_status === 'pending' && (
+                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-yellow-50 text-yellow-600 border border-yellow-200 inline-flex items-center gap-0.5 mt-0.5">
+                      ⏳ Awaiting Approval
+                    </span>
+                  )}
+                  {task.inform_status === 'rejected' && (
+                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 inline-flex items-center gap-0.5 mt-0.5">
+                      ✕ Approval Rejected
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Assigner */}
