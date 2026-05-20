@@ -10,7 +10,7 @@ export default async function DashboardPage() {
 
   const { data: tasks } = await supabase
     .from('tasks')
-    .select(`*, assignee:profiles!tasks_assigned_to_fkey(*), assigner:profiles!tasks_assigned_by_fkey(*), project:projects(*)`)
+    .select(`*, assignee:profiles!tasks_assigned_to_fkey(*), assigner:profiles!tasks_assigned_by_fkey(*), informed_user:profiles!tasks_inform_to_fkey(*), project:projects(*)`)
     .or(`assigned_to.eq.${user!.id},assigned_by.eq.${user!.id}`)
     .order('created_at', { ascending: false })
 

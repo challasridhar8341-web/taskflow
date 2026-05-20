@@ -1,11 +1,128 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { X, Bell } from 'lucide-react'
+import { X, Bell, Search, ChevronDown, User } from 'lucide-react'
+import { avatarColor, initials } from '@/lib/utils'
 import type { Profile, Priority, TaskStatus } from '@/types'
 
 const TEAMS = ['Tech', 'Design', 'Marketing', 'Content', 'HR', 'Other']
+
+// Searchable member picker dropdown
+function MemberPicker({
+  profiles, value, onChange, placeholder, currentUserId, showSelf = true
+}: {
+  profiles: Profile[]
+  value: string
+  onChange: (id: string) => void
+  placeholder: string
+  currentUserId: string
+  showSelf?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    if (open) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
+
+  const filtered = profiles.filter(p =>
+    p.full_name.toLowerCase().includes(search.toLowerCase()) ||
+    (p.email && p.email.toLowerCase().includes(search.toLowerCase()))
+  )
+
+  const selected = value === 'self' ? null : profiles.find(p => p.id === value)
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => { setOpen(o => !o); setSearch('') }}
+        className="input flex items-center justify-between w-full text-left"
+      >
+        {selected ? (
+          <div className="flex items-center gap-2">
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${avatarColor(selected.full_name)}`}>
+              {initials(selected.full_name)}
+            </div>
+            <span className="text-sm">{selected.full_name}</span>
+            {selected.department && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">{selected.department}</span>
+            )}
+          </div>
+        ) : (
+          <span style={{color:'#94a3b8'}}>{placeholder}</span>
+        )}
+        <ChevronDown size={14} style={{color:'#94a3b8'}} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-border2 rounded-xl shadow-xl z-50 overflow-hidden">
+          {/* Search box */}
+          <div className="p-2 border-b border-border">
+            <div className="flex items-center gap-2 bg-surface2 rounded-lg px-2.5 py-1.5">
+              <Search size={12} style={{color:'#94a3b8'}} />
+              <input
+                autoFocus
+                type="text"
+                placeholder="Search member..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="bg-transparent text-sm outline-none flex-1"
+                style={{color:'var(--text-primary)'}}
+              />
+            </div>
+          </div>
+
+          <div className="max-h-44 overflow-y-auto py-1">
+            {/* Assign to myself option */}
+            {showSelf && (
+              <button
+                type="button"
+                onClick={() => { onChange(''); setOpen(false) }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-surface2 transition-colors text-left ${!value ? 'bg-blue-50' : ''}`}
+              >
+                <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
+                  <User size={10} style={{color:'#94a3b8'}} />
+                </div>
+                <span style={{color: !value ? '#2575fc' : 'var(--text-secondary)'}}>Assign to myself</span>
+              </button>
+            )}
+
+            {filtered.length === 0 && (
+              <p className="px-3 py-4 text-xs text-center" style={{color:'#94a3b8'}}>No members found</p>
+            )}
+
+            {filtered.map(p => (
+              <button
+                type="button"
+                key={p.id}
+                onClick={() => { onChange(p.id); setOpen(false) }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface2 transition-colors text-left ${value === p.id ? 'bg-blue-50' : ''}`}
+              >
+                <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] font-bold ${avatarColor(p.full_name)}`}>
+                  {initials(p.full_name)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate" style={{color: value === p.id ? '#2575fc' : 'var(--text-primary)'}}>{p.full_name}</p>
+                  {p.email && <p className="text-[10px] truncate" style={{color:'#94a3b8'}}>{p.email}</p>}
+                </div>
+                {p.department && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 flex-shrink-0">{p.department}</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function NewTaskModal({ onClose, currentUserId }: { onClose: () => void; currentUserId: string }) {
   const [profiles, setProfiles] = useState<Profile[]>([])
@@ -30,13 +147,19 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
     load()
   }, [])
 
+  // Filter members by selected team (exclude current user)
+  const teamMembers = profiles.filter(p => {
+    if (p.id === currentUserId) return false
+    if (!form.team) return true
+    return p.department === form.team
+  })
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.title.trim()) return
     setLoading(true)
     const supabase = createClient()
 
-    // If inform_to is set — task needs approval before assignment
     const isInform = !!form.inform_to
     const basePayload = {
       title: form.title,
@@ -49,7 +172,6 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
       assigned_to: isInform ? currentUserId : (form.assigned_to || currentUserId),
     }
 
-    // Try with new columns first; fall back to base if migration not yet run
     let { data: task, error } = await supabase.from('tasks').insert({
       ...basePayload,
       team: form.team || null,
@@ -67,9 +189,7 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
       await supabase.from('activity').insert({
         task_id: task.id,
         user_id: currentUserId,
-        action: isInform
-          ? `requested task assignment`
-          : 'created this task',
+        action: isInform ? `requested task assignment` : 'created this task',
       })
       router.refresh()
       onClose()
@@ -78,12 +198,12 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="bg-surface border border-border2 rounded-2xl w-full max-w-md p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-md p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-display font-bold text-lg">New Task</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white p-1 rounded-lg hover:bg-surface2 transition-colors">
+          <h2 className="font-bold text-lg" style={{color:'var(--text-primary)'}}>New Task</h2>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-surface2 transition-colors" style={{color:'#94a3b8'}}>
             <X size={18} />
           </button>
         </div>
@@ -91,14 +211,14 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
           <div>
-            <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Title *</label>
+            <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>Title *</label>
             <input className="input" placeholder="e.g. Update landing page copy"
               value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Description</label>
+            <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>Description</label>
             <textarea className="input resize-none" rows={2} placeholder="What needs to be done?"
               value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
           </div>
@@ -106,15 +226,17 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
           {/* Team + Priority */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Team</label>
-              <select className="input" value={form.team} onChange={e => setForm(f => ({ ...f, team: e.target.value }))}>
-                <option value="">No team</option>
+              <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>Team</label>
+              <select className="input" value={form.team}
+                onChange={e => setForm(f => ({ ...f, team: e.target.value, assigned_to: '' }))}>
+                <option value="">All teams</option>
                 {TEAMS.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Priority</label>
-              <select className="input" value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value as Priority }))}>
+              <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>Priority</label>
+              <select className="input" value={form.priority}
+                onChange={e => setForm(f => ({ ...f, priority: e.target.value as Priority }))}>
                 <option value="high">High</option>
                 <option value="medium">Medium</option>
                 <option value="low">Low</option>
@@ -122,36 +244,45 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
             </div>
           </div>
 
-          {/* Assign To */}
+          {/* Assign To — filtered by team + searchable */}
           <div>
-            <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Assign To</label>
-            <select className="input" value={form.assigned_to}
-              onChange={e => setForm(f => ({ ...f, assigned_to: e.target.value, inform_to: '' }))}>
-              <option value="">Assign to myself</option>
-              {profiles.filter(p => p.id !== currentUserId).map(p =>
-                <option key={p.id} value={p.id}>{p.full_name}</option>
-              )}
-            </select>
+            <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>
+              Assign To {form.team && <span className="normal-case text-blue-500 ml-1">({form.team} team)</span>}
+            </label>
+            {teamMembers.length === 0 && form.team ? (
+              <div className="input text-sm" style={{color:'#94a3b8'}}>
+                No members in {form.team} team yet
+              </div>
+            ) : (
+              <MemberPicker
+                profiles={teamMembers}
+                value={form.assigned_to}
+                onChange={id => setForm(f => ({ ...f, assigned_to: id, inform_to: '' }))}
+                placeholder="Assign to myself"
+                currentUserId={currentUserId}
+              />
+            )}
           </div>
 
-          {/* Inform box */}
-          <div className="rounded-xl border border-border2 p-3 space-y-2 bg-surface2/30">
+          {/* Inform for Approval box */}
+          <div className="rounded-xl border p-3 space-y-2" style={{borderColor:'#e0f2fe',background:'#f0f9ff'}}>
             <div className="flex items-center gap-2">
-              <Bell size={13} className="text-accent2" />
-              <label className="text-xs text-accent2 font-medium uppercase tracking-wider">Inform for Approval</label>
+              <Bell size={13} style={{color:'#2575fc'}} />
+              <label className="text-xs font-semibold uppercase tracking-wider" style={{color:'#2575fc'}}>Inform for Approval</label>
             </div>
-            <p className="text-[11px] text-gray-500">
+            <p className="text-[11px]" style={{color:'#94a3b8'}}>
               Select a person to notify — the task will only be assigned once they approve it.
             </p>
-            <select className="input" value={form.inform_to}
-              onChange={e => setForm(f => ({ ...f, inform_to: e.target.value, assigned_to: '' }))}>
-              <option value="">No approval needed</option>
-              {profiles.filter(p => p.id !== currentUserId).map(p =>
-                <option key={p.id} value={p.id}>{p.full_name}</option>
-              )}
-            </select>
+            <MemberPicker
+              profiles={profiles.filter(p => p.id !== currentUserId)}
+              value={form.inform_to}
+              onChange={id => setForm(f => ({ ...f, inform_to: id, assigned_to: '' }))}
+              placeholder="No approval needed"
+              currentUserId={currentUserId}
+              showSelf={false}
+            />
             {form.inform_to && (
-              <p className="text-[11px] text-yellow-400">
+              <p className="text-[11px] text-yellow-600">
                 ⏳ Task will stay pending until approved by the selected person.
               </p>
             )}
@@ -160,12 +291,12 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
           {/* Due Date + Status */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Due Date</label>
+              <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>Due Date</label>
               <input className="input" type="date" value={form.due_date}
                 onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Status</label>
+              <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>Status</label>
               <select className="input" value={form.status}
                 onChange={e => setForm(f => ({ ...f, status: e.target.value as TaskStatus }))}>
                 <option value="todo">To Do</option>
