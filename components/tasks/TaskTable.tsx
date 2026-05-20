@@ -115,8 +115,8 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
       </div>
 
       {/* Table */}
-      <div className="card overflow-hidden">
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] px-4 py-2.5 bg-surface2 border-b border-border text-[10px] text-gray-500 uppercase tracking-widest font-medium">
+      <div className="card overflow-visible">
+        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_60px] px-4 py-2.5 bg-surface2 border-b border-border text-[10px] text-gray-500 uppercase tracking-widest font-medium rounded-t-xl">
           <div>Task</div><div>Assignee</div><div>Priority</div><div>Due</div><div>Status</div><div />
         </div>
 

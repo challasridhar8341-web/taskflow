@@ -54,7 +54,7 @@ export default function TaskOptionsMenu({ task, currentUserId }: { task: Task; c
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-44 bg-surface border border-border rounded-xl shadow-2xl z-40 overflow-hidden py-1">
+        <div className="absolute right-0 top-full mt-1 w-44 bg-surface border border-border rounded-xl shadow-2xl z-50 overflow-hidden py-1">
           {!confirming ? (
             <>
               <div className="px-3 py-1.5 text-[10px] text-gray-500 uppercase tracking-wider font-medium">Set Status</div>
