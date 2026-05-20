@@ -22,20 +22,35 @@ function daysOverdue(dateStr: string) {
   return diff === 1 ? '1 day overdue' : `${diff} days overdue`
 }
 
-const PRIORITY_COLOR: Record<string, string> = {
-  high: 'text-red-400 bg-red-400/10 border-red-400/20',
-  medium: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20',
-  low: 'text-green-400 bg-green-400/10 border-green-400/20',
+const PRIORITY_BADGE: Record<string, { bg: string; text: string; border: string; label: string }> = {
+  high:   { bg: '#fef2f2', text: '#dc2626', border: '#fecaca', label: 'High' },
+  medium: { bg: '#fffbeb', text: '#d97706', border: '#fde68a', label: 'Medium' },
+  low:    { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0', label: 'Low' },
 }
-const STATUS_COLOR: Record<string, string> = {
-  todo: 'text-gray-400 bg-gray-400/10 border-gray-400/20',
-  in_progress: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
-  in_review: 'text-purple-400 bg-purple-400/10 border-purple-400/20',
-  done: 'text-green-400 bg-green-400/10 border-green-400/20',
+const STATUS_BADGE: Record<string, { bg: string; text: string; border: string; label: string }> = {
+  todo:        { bg: '#f8fafc', text: '#475569', border: '#e2e8f0', label: 'To Do' },
+  in_progress: { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe', label: 'In Progress' },
+  in_review:   { bg: '#faf5ff', text: '#7c3aed', border: '#ddd6fe', label: 'In Review' },
+  done:        { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0', label: 'Done' },
 }
+
 function fmtDate(d?: string) {
   if (!d) return '—'
   return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+// ─── Reusable meta card ───────────────────────────────────────────────────────
+function MetaCard({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-2.5 p-3 rounded-xl"
+      style={{ background: '#f8faff', border: '1px solid rgba(26,58,140,0.10)' }}>
+      <Icon size={14} className="flex-shrink-0 mt-0.5" style={{ color: '#2575fc' }} />
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>{label}</p>
+        {children}
+      </div>
+    </div>
+  )
 }
 
 // ─── Task preview popup ───────────────────────────────────────────────────────
@@ -48,149 +63,119 @@ function TaskPreviewModal({
   onReject: () => void
   actionLoading: boolean
 }) {
+  const pri = PRIORITY_BADGE[task.priority] ?? PRIORITY_BADGE.medium
+  const sta = STATUS_BADGE[task.status]     ?? STATUS_BADGE.todo
+
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
+      style={{ background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(6px)' }}
       onClick={e => e.target === e.currentTarget && onClose()}
     >
       <div className="w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-        style={{ background: 'var(--surface, #1a1f2e)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        style={{ background: '#ffffff', border: '1px solid rgba(26,58,140,0.12)' }}>
 
-        {/* Header */}
-        <div className="flex items-start justify-between px-6 py-5 border-b"
-          style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.03)' }}>
-          <div className="flex-1 min-w-0 pr-4">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-yellow-400 mb-1.5">
-              ⏳ Pending Your Approval
-            </p>
-            <h2 className="text-base font-bold leading-snug" style={{ color: '#f1f5f9' }}>
-              {task.title}
-            </h2>
+        {/* Header — gradient band */}
+        <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg,#eef2fb 0%,#e0faf3 100%)', borderBottom: '1px solid rgba(26,58,140,0.10)' }}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-3"
+                style={{ background: '#fef9c3', color: '#b45309', border: '1px solid #fde68a' }}>
+                ⏳ Pending Your Approval
+              </span>
+              <h2 className="text-lg font-bold leading-snug" style={{ color: '#1e3a8a' }}>
+                {task.title}
+              </h2>
+            </div>
+            <button onClick={onClose}
+              className="p-1.5 rounded-lg transition-colors flex-shrink-0 hover:bg-black/5"
+              style={{ color: '#64748b' }}>
+              <X size={18} />
+            </button>
           </div>
-          <button onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors flex-shrink-0"
-            style={{ color: '#64748b' }}>
-            <X size={16} />
-          </button>
         </div>
 
         {/* Body */}
         <div className="px-6 py-5 space-y-4">
 
           {/* Description */}
-          {task.description && (
-            <div className="flex gap-3">
-              <AlignLeft size={14} className="flex-shrink-0 mt-0.5" style={{ color: '#64748b' }} />
-              <p className="text-sm leading-relaxed" style={{ color: '#94a3b8' }}>
+          {task.description ? (
+            <div className="flex gap-2.5 p-3.5 rounded-xl" style={{ background: '#f8faff', border: '1px solid rgba(26,58,140,0.08)' }}>
+              <AlignLeft size={15} className="flex-shrink-0 mt-0.5" style={{ color: '#2575fc' }} />
+              <p className="text-sm leading-relaxed" style={{ color: '#334155' }}>
                 {task.description}
               </p>
+            </div>
+          ) : (
+            <div className="flex gap-2.5 p-3.5 rounded-xl" style={{ background: '#f8faff', border: '1px solid rgba(26,58,140,0.08)' }}>
+              <AlignLeft size={15} className="flex-shrink-0 mt-0.5" style={{ color: '#94a3b8' }} />
+              <p className="text-sm italic" style={{ color: '#94a3b8' }}>No description provided.</p>
             </div>
           )}
 
           {/* Meta grid */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5">
 
-            {/* Assigned to */}
-            <div className="flex items-center gap-2.5 p-3 rounded-xl"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <User size={13} style={{ color: '#94a3b8' }} />
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider">Assigned To</p>
-                <p className="text-xs font-semibold" style={{ color: '#e2e8f0' }}>
-                  {task.assignee?.full_name ?? 'Not assigned'}
-                </p>
-              </div>
-            </div>
+            <MetaCard icon={User} label="Assigned To">
+              <p className="text-sm font-semibold" style={{ color: '#1e3a8a' }}>
+                {task.assignee?.full_name ?? 'Not assigned'}
+              </p>
+            </MetaCard>
 
-            {/* Requested by */}
-            <div className="flex items-center gap-2.5 p-3 rounded-xl"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <User size={13} style={{ color: '#94a3b8' }} />
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider">Requested By</p>
-                <p className="text-xs font-semibold" style={{ color: '#e2e8f0' }}>
-                  {task.assigner?.full_name ?? '—'}
-                </p>
-              </div>
-            </div>
+            <MetaCard icon={User} label="Requested By">
+              <p className="text-sm font-semibold" style={{ color: '#1e3a8a' }}>
+                {task.assigner?.full_name ?? '—'}
+              </p>
+            </MetaCard>
 
-            {/* Priority */}
-            <div className="flex items-center gap-2.5 p-3 rounded-xl"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <Flag size={13} style={{ color: '#94a3b8' }} />
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider">Priority</p>
-                <span className={cn('text-[11px] font-semibold px-1.5 py-0.5 rounded border capitalize', PRIORITY_COLOR[task.priority] ?? '')}>
-                  {task.priority}
-                </span>
-              </div>
-            </div>
+            <MetaCard icon={Flag} label="Priority">
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                style={{ background: pri.bg, color: pri.text, border: `1px solid ${pri.border}` }}>
+                {pri.label}
+              </span>
+            </MetaCard>
 
-            {/* Status */}
-            <div className="flex items-center gap-2.5 p-3 rounded-xl"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <CheckCircle size={13} style={{ color: '#94a3b8' }} />
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider">Status</p>
-                <span className={cn('text-[11px] font-semibold px-1.5 py-0.5 rounded border capitalize', STATUS_COLOR[task.status] ?? '')}>
-                  {task.status.replace('_', ' ')}
-                </span>
-              </div>
-            </div>
+            <MetaCard icon={CheckCircle} label="Status">
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                style={{ background: sta.bg, color: sta.text, border: `1px solid ${sta.border}` }}>
+                {sta.label}
+              </span>
+            </MetaCard>
 
-            {/* Start date */}
-            <div className="flex items-center gap-2.5 p-3 rounded-xl"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <Calendar size={13} style={{ color: '#94a3b8' }} />
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider">Start Date</p>
-                <p className="text-xs font-semibold" style={{ color: '#e2e8f0' }}>{fmtDate(task.start_date)}</p>
-              </div>
-            </div>
+            <MetaCard icon={Calendar} label="Start Date">
+              <p className="text-sm font-semibold" style={{ color: '#1e3a8a' }}>{fmtDate(task.start_date)}</p>
+            </MetaCard>
 
-            {/* Due date */}
-            <div className="flex items-center gap-2.5 p-3 rounded-xl"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <Calendar size={13} style={{ color: '#94a3b8' }} />
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider">Due Date</p>
-                <p className="text-xs font-semibold" style={{ color: '#e2e8f0' }}>{fmtDate(task.due_date)}</p>
-              </div>
-            </div>
+            <MetaCard icon={Calendar} label="Due Date">
+              <p className="text-sm font-semibold" style={{ color: '#1e3a8a' }}>{fmtDate(task.due_date)}</p>
+            </MetaCard>
 
           </div>
 
-          {/* Team */}
+          {/* Team — full-width if present */}
           {task.team && (
-            <div className="flex items-center gap-2.5 p-3 rounded-xl"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <Tag size={13} style={{ color: '#94a3b8' }} />
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider">Team</p>
-                <p className="text-xs font-semibold" style={{ color: '#e2e8f0' }}>{task.team}</p>
-              </div>
-            </div>
+            <MetaCard icon={Tag} label="Team">
+              <p className="text-sm font-semibold" style={{ color: '#1e3a8a' }}>{task.team}</p>
+            </MetaCard>
           )}
         </div>
 
-        {/* Footer actions */}
-        <div className="flex gap-3 px-6 py-5 border-t"
-          style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.15)' }}>
+        {/* Footer */}
+        <div className="flex gap-3 px-6 py-4" style={{ borderTop: '1px solid rgba(26,58,140,0.08)', background: '#f8faff' }}>
           <button onClick={onClose} disabled={actionLoading}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors disabled:opacity-50"
-            style={{ borderColor: 'rgba(255,255,255,0.10)', color: '#94a3b8' }}>
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all hover:bg-gray-50 disabled:opacity-50"
+            style={{ borderColor: 'rgba(26,58,140,0.15)', color: '#64748b', background: '#fff' }}>
             Close
           </button>
           <button onClick={onReject} disabled={actionLoading}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-            style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' }}>
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-50"
+            style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
             {actionLoading ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
             Reject
           </button>
           <button onClick={onApprove} disabled={actionLoading}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-            style={{ background: 'rgba(34,197,94,0.12)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.25)' }}>
+            className="flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-50 text-white shadow-sm"
+            style={{ background: 'linear-gradient(135deg,#2575fc,#06d6a0)' }}>
             {actionLoading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
             Approve
           </button>
