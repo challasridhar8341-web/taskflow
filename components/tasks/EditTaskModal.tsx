@@ -18,6 +18,11 @@ export default function EditTaskModal({ task, onClose, currentUserId }: {
   const router = useRouter()
   const supabase = createClient()
 
+  const todayStr = (() => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })()
+
   const [form, setForm] = useState({
     title: task.title,
     description: task.description || '',
@@ -103,7 +108,7 @@ export default function EditTaskModal({ task, onClose, currentUserId }: {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Due Date</label>
-              <input className="input" type="date" value={form.due_date} onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
+              <input className="input" type="date" value={form.due_date} min={todayStr} onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
             </div>
             <div>
               <label className="block text-xs text-gray-400 uppercase tracking-wider mb-1.5">Status</label>
