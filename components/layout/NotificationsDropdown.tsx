@@ -93,7 +93,6 @@ export default function NotificationsDropdown({ currentUserId }: { currentUserId
 
   async function handleApprove(task: PendingTask) {
     await supabase.from('tasks').update({
-      assigned_to: currentUserId,
       inform_status: 'approved',
       updated_at: new Date().toISOString(),
     }).eq('id', task.id)
@@ -158,7 +157,7 @@ export default function NotificationsDropdown({ currentUserId }: { currentUserId
                     <div key={t.id} className="px-4 py-3 border-b border-border/50 hover:bg-surface2/40 transition-colors">
                       <p className="text-xs font-medium text-white mb-0.5">{t.title}</p>
                       {t.description && <p className="text-[10px] text-gray-500 mb-2 truncate">{t.description}</p>}
-                      <p className="text-[10px] text-yellow-400 mb-2">You've been requested to take this task</p>
+                      <p className="text-[10px] text-yellow-400 mb-2">Your approval is needed to assign this task</p>
                       <div className="flex gap-2">
                         <button onClick={() => handleApprove(t)}
                           className="flex items-center gap-1 px-3 py-1 bg-green-500/15 hover:bg-green-500/25 text-green-400 rounded-lg text-[11px] font-medium transition-colors">

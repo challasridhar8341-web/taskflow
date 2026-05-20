@@ -170,7 +170,7 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
       due_date: form.due_date || null,
       project_id: null,
       assigned_by: currentUserId,
-      assigned_to: isInform ? currentUserId : (form.assigned_to || currentUserId),
+      assigned_to: form.assigned_to || currentUserId,
     }
 
     let { data: task, error } = await supabase.from('tasks').insert({
@@ -258,7 +258,7 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
               <MemberPicker
                 profiles={teamMembers}
                 value={form.assigned_to}
-                onChange={id => setForm(f => ({ ...f, assigned_to: id, inform_to: '' }))}
+                onChange={id => setForm(f => ({ ...f, assigned_to: id }))}
                 placeholder="Assign to myself"
                 currentUserId={currentUserId}
               />
@@ -272,19 +272,19 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
               <label className="text-xs font-semibold uppercase tracking-wider" style={{color:'#2575fc'}}>Inform for Approval</label>
             </div>
             <p className="text-[11px]" style={{color:'#94a3b8'}}>
-              Select a person to notify — the task will only be assigned once they approve it.
+              Select an approver — the assignee will see the task once approved.
             </p>
             <MemberPicker
-              profiles={profiles.filter(p => p.id !== currentUserId)}
+              profiles={profiles.filter(p => p.id !== currentUserId && p.id !== form.assigned_to)}
               value={form.inform_to}
-              onChange={id => setForm(f => ({ ...f, inform_to: id, assigned_to: '' }))}
+              onChange={id => setForm(f => ({ ...f, inform_to: id }))}
               placeholder="No approval needed"
               currentUserId={currentUserId}
               showSelf={false}
             />
             {form.inform_to && (
               <p className="text-[11px] text-yellow-600">
-                ⏳ Task will stay pending until approved by the selected person.
+                ⏳ Task goes to the assignee once the approver accepts it.
               </p>
             )}
           </div>
