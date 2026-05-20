@@ -24,6 +24,7 @@ export interface Task {
   description?: string
   status: TaskStatus
   priority: Priority
+  start_date?: string
   due_date?: string
   project_id?: string
   assigned_to: string

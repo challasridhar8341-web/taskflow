@@ -122,8 +122,11 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
 
       {/* Table */}
       <div className="card overflow-visible">
-        <div className="grid grid-cols-[2fr_2fr_0.8fr_0.9fr_0.9fr_48px] px-4 py-2.5 border-b border-border text-[10px] uppercase tracking-widest font-bold rounded-t-xl" style={{background:'linear-gradient(135deg,#eef9ff 0%,#e0faf3 100%)',color:'#1e3a8a'}}>
-          <div>Task</div><div>People</div><div>Priority</div><div>Due</div><div>Status</div><div />
+        <div className="grid grid-cols-[2fr_1fr_1fr_0.7fr_0.75fr_0.75fr_0.85fr_48px] px-4 py-2.5 border-b border-border text-[10px] uppercase tracking-widest font-bold rounded-t-xl" style={{background:'linear-gradient(135deg,#eef9ff 0%,#e0faf3 100%)',color:'#1e3a8a'}}>
+          <div>Task</div>
+          <div style={{color:'#059669'}}>Assigner</div>
+          <div style={{color:'#d97706'}}>Approver</div>
+          <div>Priority</div><div>Start</div><div>End</div><div>Status</div><div />
         </div>
 
         {filtered.length === 0 && (
@@ -135,7 +138,9 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
           const overdue = task.due_date && isOverdue(task.due_date) && !done
           return (
             <div key={task.id}
-              className="grid grid-cols-[2fr_2fr_0.8fr_0.9fr_0.9fr_48px] px-4 py-3 border-b border-border last:border-b-0 items-center hover:bg-surface2/60 transition-colors group">
+              className="grid grid-cols-[2fr_1fr_1fr_0.7fr_0.75fr_0.75fr_0.85fr_48px] px-4 py-3 border-b border-border last:border-b-0 items-center hover:bg-surface2/60 transition-colors group">
+
+              {/* Task title */}
               <div className="flex items-center gap-2.5 min-w-0">
                 <button onClick={() => toggleDone(task)}
                   className={cn('w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors',
@@ -145,40 +150,40 @@ export default function TaskTable({ tasks, currentUserId }: { tasks: Task[]; cur
                 <span className={cn('text-sm font-semibold truncate', done ? 'line-through text-[#94a3b8]' : 'text-[#1e3a8a]')}>{task.title}</span>
               </div>
 
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {/* Assignee */}
-                {task.assignee && (
-                  <div className="flex items-center gap-1 bg-blue-50 border border-blue-100 rounded-full px-1.5 py-0.5" title={`Assignee: ${task.assignee.full_name}`}>
-                    <div className={cn('w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-[8px] font-bold', avatarColor(task.assignee.full_name))}>
-                      {initials(task.assignee.full_name)}
-                    </div>
-                    <span className="text-[10px] font-semibold" style={{color:'#2575fc'}}>{task.assignee.full_name.split(' ')[0]}</span>
-                  </div>
-                )}
-                {/* Assigner — only if different from assignee */}
-                {task.assigner && task.assigner.id !== task.assignee?.id && (
-                  <div className="flex items-center gap-1 bg-emerald-50 border border-emerald-100 rounded-full px-1.5 py-0.5" title={`Assigner: ${task.assigner.full_name}`}>
-                    <div className={cn('w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-[8px] font-bold', avatarColor(task.assigner.full_name))}>
+              {/* Assigner */}
+              <div>
+                {task.assigner ? (
+                  <div className="flex items-center gap-1.5">
+                    <div className={cn('w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[8px] font-bold', avatarColor(task.assigner.full_name))}>
                       {initials(task.assigner.full_name)}
                     </div>
-                    <span className="text-[10px] font-semibold" style={{color:'#059669'}}>{task.assigner.full_name.split(' ')[0]}</span>
+                    <span className="text-xs font-medium truncate" style={{color:'#059669'}}>{task.assigner.full_name.split(' ')[0]}</span>
                   </div>
-                )}
-                {/* Approver */}
-                {task.informed_user && (
-                  <div className="flex items-center gap-1 bg-amber-50 border border-amber-100 rounded-full px-1.5 py-0.5" title={`Approver: ${task.informed_user.full_name}`}>
-                    <div className={cn('w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-[8px] font-bold', avatarColor(task.informed_user.full_name))}>
+                ) : <span className="text-xs text-gray-300">—</span>}
+              </div>
+
+              {/* Approver */}
+              <div>
+                {task.informed_user ? (
+                  <div className="flex items-center gap-1.5">
+                    <div className={cn('w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[8px] font-bold', avatarColor(task.informed_user.full_name))}>
                       {initials(task.informed_user.full_name)}
                     </div>
-                    <span className="text-[10px] font-semibold" style={{color:'#d97706'}}>{task.informed_user.full_name.split(' ')[0]}</span>
+                    <span className="text-xs font-medium truncate" style={{color:'#d97706'}}>{task.informed_user.full_name.split(' ')[0]}</span>
                   </div>
-                )}
+                ) : <span className="text-xs text-gray-300">—</span>}
               </div>
 
               <div>
                 <span className={cn('badge', priorityColor(task.priority))}>{priorityLabel(task.priority)}</span>
               </div>
 
+              {/* Start date */}
+              <div className="text-xs font-medium text-[#475569]">
+                {task.start_date ? formatDate(task.start_date) : '—'}
+              </div>
+
+              {/* End date */}
               <div className={cn('text-xs font-medium', overdue ? 'text-red-500' : 'text-[#475569]')}>
                 {task.due_date ? formatDate(task.due_date) : '—'}
                 {overdue && <span className="ml-1">⚠</span>}

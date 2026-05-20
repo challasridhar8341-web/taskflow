@@ -135,7 +135,7 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
     inform_to: '',
     priority: 'medium' as Priority,
     status: 'todo' as TaskStatus,
-    due_date: '', team: '',
+    start_date: '', due_date: '', team: '',
   })
 
   useEffect(() => {
@@ -166,6 +166,7 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
       description: form.description,
       priority: form.priority,
       status: form.status,
+      start_date: form.start_date || null,
       due_date: form.due_date || null,
       project_id: null,
       assigned_by: currentUserId,
@@ -288,23 +289,30 @@ export default function NewTaskModal({ onClose, currentUserId }: { onClose: () =
             )}
           </div>
 
-          {/* Due Date + Status */}
+          {/* Start Date + End Date */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>Due Date</label>
+              <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>Start Date</label>
+              <input className="input" type="date" value={form.start_date}
+                onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>End Date</label>
               <input className="input" type="date" value={form.due_date}
                 onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
             </div>
-            <div>
-              <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>Status</label>
-              <select className="input" value={form.status}
-                onChange={e => setForm(f => ({ ...f, status: e.target.value as TaskStatus }))}>
-                <option value="todo">To Do</option>
-                <option value="in_progress">In Progress</option>
-                <option value="in_review">In Review</option>
-                <option value="done">Done</option>
-              </select>
-            </div>
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className="block text-xs uppercase tracking-wider mb-1.5 font-semibold" style={{color:'#64748b'}}>Status</label>
+            <select className="input" value={form.status}
+              onChange={e => setForm(f => ({ ...f, status: e.target.value as TaskStatus }))}>
+              <option value="todo">To Do</option>
+              <option value="in_progress">In Progress</option>
+              <option value="in_review">In Review</option>
+              <option value="done">Done</option>
+            </select>
           </div>
 
           <div className="flex gap-3 pt-2">

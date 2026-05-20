@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { MoreHorizontal, Trash2, CheckCircle, RotateCcw, AlertCircle, Clock, Eye } from 'lucide-react'
+import { Pencil, Trash2, CheckCircle, RotateCcw, AlertCircle, Clock, Eye } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import type { Task, TaskStatus } from '@/types'
@@ -50,7 +50,7 @@ export default function TaskOptionsMenu({ task, currentUserId }: { task: Task; c
       <button
         onClick={e => { e.stopPropagation(); setOpen(o => !o); setConfirming(false) }}
         className="w-6 h-6 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
-        <MoreHorizontal size={10} className="text-gray-400" />
+        <Pencil size={11} className="text-gray-400" />
       </button>
 
       {open && (
